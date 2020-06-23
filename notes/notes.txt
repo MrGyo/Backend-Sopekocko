@@ -1,0 +1,8 @@
+Développer une application d'évaluation des sauces piquantes
+MVP = application web qui permet aux utilisateurs de liker et disliker les sauces ajoutées
+Création API (code sécurisé) + données personnelles protégées (méthode de masquage)
+API doit respecter les standards OWASP
+Projet hébergé par un serveur node.js
+Base de données MongoDB
+Framework Express
+Plug-in-MOngoose pour signalement des erreurs de bases de données
