@@ -1,4 +1,4 @@
-/*const http = require('http');
+const http = require('http');
 const app = require('./app');
 
 // La fonction normalizePort renvoie un port valide, qu'il soit fourni sous la forme d'un numéro ou d'une chaîne 
@@ -47,12 +47,12 @@ server.on('listening', () => {
   console.log('Listening on ' + bind);
 });
 
-server.listen(port);*/
+server.listen(port);
 
-const http = require('http');
+/*const http = require('http');
 
 const server = http.createServer((req, res) => {
     res.end('Voilà la réponse du serveur !');
 });
 
-server.listen(process.env.PORT || 3000);
+server.listen(process.env.PORT || 3000);*/
