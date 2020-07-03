@@ -1,0 +1,1517 @@
+CHAPITRE 1
+
+1. Configurez votre environnement de développement
+
+Installez Node
+Installez Angular : npm install -g @angular/cli
+Clonez l'application front-end
+
+2. Démarrez votre serveur Node
+
+Node est le runtime qui permet d'écrire toutes nos tâches côté serveur, en JavaScript, telles que la logique métier, la persistance des données et la sécurité. Node ajoute également des fonctionnalités que le JavaScript du navigateur standard ne possède pas, comme par exemple l'accès au système de fichiers local.
+
+Express est, pour faire court, un framework reposant sur Node qui facilite la création et la gestion des serveurs Node, comme vous le verrez à mesure que nous progresserons dans ce cours.
+
+Initialisez votre projet :
+
+À partir de votre dossier backend , exécutez la commande de terminal npm init pour initialiser votre projet. Vous pouvez utiliser les options par défaut ou les modifier si vous le souhaitez. Cependant, votre point d'entrée doit être server.js.
+
+Ce processus génère un fichier package.json vierge, dans lequel seront enregistrés les détails de tous les packages npm que nous utiliserons pour ce projet.
+
+À ce stade, vous pouvez initialiser un dépôt Git en exécutant git init depuis votre dossier backend . N'oubliez pas de créer un fichier .gitignore contenant la ligne node_modules afin de ne pas envoyer ce dossier (qui deviendra volumineux) vers votre dépôt distant.
+
+Créez un fichier server.js à l'intérieur de votre dossier backend . Il contiendra votre premier serveur Node.
+
+Démarrez un serveur basique : 
+
+Ce serveur est un programme qui va écouter des requêtes http et y répondre
+
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+    res.end('Voilà la réponse du serveur !');
+});
+
+server.listen(process.env.PORT || 3000);
+
+Ici, vous importez le package HTTP natif de Node et l'utilisez pour créer un serveur, en passant une fonction qui sera exécutée à chaque appel effectué vers ce serveur. Cette fonction reçoit les objets request et response en tant qu'arguments. Dans cet exemple, vous utilisez la méthode end de la réponse pour renvoyer une réponse de type string à l'appelant.
+
+Dans la dernière ligne, vous configurez le serveur pour qu'il écoute :
+
+soit la variable d'environnement du port grâce à process.env.PORT : si la plateforme de déploiement propose un port par défaut, c'est celui-ci qu'on écoutera ;
+
+soit le port 3000, ce qui nous servira dans le cas de notre plateforme de développement.
+
+3. Créez une application Express
+
+Installez Express
+
+npm install --save express
+
+Créez un fichier app.js , où vous placerez votre application Express :
+
+const express = require('express');
+
+const app = express();
+
+module.exports = app;
+
+On exporte l'application afin de pouvoir l'utiliser avec le serveur node
+
+Exécutez l'application Express sur le serveur Node
+
+Revenez à votre fichier server.js et modifiez-le comme suit :
+
+const http = require('http');
+const app = require('./app'); ici on importe l'application du fichier app.js
+
+app.set('port', process.env.PORT || 3000); on doit dire à l'application express sur quel port elle va tourner
+const server = http.createServer(app); et ici on passe à notre serveur l'application
+
+server.listen(process.env.PORT || 3000);
+
+Le serveur node doit retourner l'application qu'on a créée
+
+Effectuer une demande vers ce serveur générera une erreur 404, car notre application n'a encore aucun moyen de répondre. Configurons une réponse simple pour nous assurer que tout fonctionne correctement, en effectuant un ajout à notre fichier app.js
+
+const express = require('express');
+
+const app = express();
+
+app.use((req, res) => {
+   res.json({ message: 'Votre requête a bien été reçue !' }); 
+}); cette méthode va permettre de générer une réponse en JSON on retourne un objet en réponse
+
+module.exports = app; ici on est obligé d'exporter l'application afin de la rendre accessible dans les autres fichiers notamment le serveur node.
+
+Le serveur node retourne bien la réponse de l'application express
+
+
+Ajoutez des middlewares 
+
+Une application Express est fondamentalement une série de fonctions appelées middleware.
+Les middlewares sont des fonctions qui capturent et traitent les requêtes reçues.
+Chaque élément de middleware reçoit les objets request etresponse , peut les lire, les analyser et les manipuler, le cas échéant. Le middleware Express reçoit également la méthode next , qui permet à chaque middleware de passer l'exécution au middleware suivant. Voyons comment tout cela fonctionne.
+
+const express = require('express');
+
+const app = express();
+
+app.use((req, res, next) => {
+  console.log('Requête reçue !');
+  next();
+}); ici on va juste dire que la requête a bien été reçue, on a bien requête reçue dans Nodemon mais il faut appeler next afin que le message puisse s'afficher dans postman
+
+app.use((req, res, next) => {
+  res.status(201);
+  next();
+}); ici on va ajouter un statut 201, on modifie le code de la réponse http, ce code s'affichera donc dans postman, on ne peut pas modifier cette réponse dans un prochain middleware
+
+app.use((req, res, next) => {
+  res.json({ message: 'Votre requête a bien été reçue !' });
+  next();
+});cette méthode va permettre de générer une réponse en JSON on retourne un objet en réponse + la fonction NEXT qui renvoie à la prochaine fonction l'exécution du serveur
+
+app.use((req, res, next) => {
+  console.log('Réponse envoyée avec succès !');
+}); ici on dit que la réponse a été envoyée avec succès, et j'aurai aussi ce message dans nodemon server
+
+module.exports = app;
+
+L'idée va être de créer des réponses dynamiques
+
+Amélioration du server.js
+
+const http = require('http');
+const app = require('./app');
+
+const normalizePort = val => {
+  const port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    return val;
+  }
+  if (port >= 0) {
+    return port;
+  }
+  return false;
+};
+const port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+const errorHandler = error => {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+  const address = server.address();
+  const bind = typeof address === 'string' ? 'pipe ' + address : 'port: ' + port;
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges.');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use.');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+};
+
+const server = http.createServer(app);
+
+server.on('error', errorHandler);
+server.on('listening', () => {
+  const address = server.address();
+  const bind = typeof address === 'string' ? 'pipe ' + address : 'port ' + port;
+  console.log('Listening on ' + bind);
+});
+
+server.listen(port);
+
+
+Aperçu rapide de ce qui se passe ici :
+
+la fonction normalizePort renvoie un port valide, qu'il soit fourni sous la forme d'un numéro ou d'une chaîne ;
+
+la fonction errorHandler  recherche les différentes erreurs et les gère de manière appropriée. Elle est ensuite enregistrée dans le serveur ;
+
+un écouteur d'évènements est également enregistré, consignant le port ou le canal nommé sur lequel le serveur s'exécute dans la console.
+
+Notre serveur de développement Node est à présent opérationnel. Vous pouvez ainsi ajouter les fonctionnalités appropriées à l'application Express.
+
+4. Créez une route GET
+
+Ici on va commencer à construire notre API
+CRUD : create, read, upadte and delete, au coeur des appi
+
+Ici on va crééer un middleware qui renvoie un tableau des objets à vendre, c'est donc l'opération READ
+
+Et on va implémenter le CORS, indispensable quand le front et le back ne partage pas la même origine
+
+
+Dans le fichier app.js on va ajouter le middleware suivant qui va lire (READ) l'array qu'on aura créé
+
+const express = require('express');
+
+const app = express();
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On crée deux objets
+  const stuff = [
+    {
+      _id: 'oeihfzeoi',
+      title: 'Mon premier objet',
+      description: 'Les infos de mon premier objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 4900,
+      userId: 'qsomihvqios',
+    },
+    {
+      _id: 'oeihfzeomoihi',
+      title: 'Mon deuxième objet',
+      description: 'Les infos de mon deuxième objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 2900,
+      userId: 'qsomihvqios',
+    },
+  ];
+  res.status(200).json(stuff);
+}); on attribue un code 200 pour une réponse réussi, et le stuff en JSON qu'on verra donc apparaître dans postman, mais on aura rien pour le moment au niveau frontend : on a donc un problème entre le navigateur et le serveur.
+
+module.exports = app;
+
+
+Erreurs de CORS = sécurité contre les requêtes malvaillantes
+
+CORS signifie « Cross Origin Resource Sharing ». Il s'agit d'un système de sécurité qui, par défaut, bloque les appels HTTP d'être effectués entre des serveurs différents, ce qui empêche donc les requêtes malveillantes d'accéder à des ressources sensibles. Dans notre cas, nous avons deux origines : localhost:3000 et localhost:4200 , et nous souhaiterions qu'elles puissent communiquer entre elles. Pour cela, nous devons ajouter des headers à notre objet  response .
+
+Les hedaers sont là pour dire que tout va bien
+
+const express = require('express');
+
+const app = express();
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On crée deux objets
+  const stuff = [
+    {
+      _id: 'oeihfzeoi',
+      title: 'Mon premier objet',
+      description: 'Les infos de mon premier objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 4900,
+      userId: 'qsomihvqios',
+    },
+    {
+      _id: 'oeihfzeomoihi',
+      title: 'Mon deuxième objet',
+      description: 'Les infos de mon deuxième objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 2900,
+      userId: 'qsomihvqios',
+    },
+  ];
+  res.status(200).json(stuff);
+}); on attribue un code 200 pour une réponse réussi, et le stuff en JSON qu'on verra donc apparaître dans postman, mais on aura rien pour le moment au niveau frontend : on a donc un problème entre le navigateur et le serveur.
+
+module.exports = app;
+
+Ici on verra donc bien les deux objets en faisant un refresh du frontend
+
+On une route qui récupère les objets à vendre sur le site, mais voyons comment permettre aux utlisateurs de mettre leurs objets à vendre sur le site
+
+5. Créez une route POST
+
+On ne peut rien sauvegarder mais au moins voir comment les données se trouvent capturées
+
+Pour gérer la demande POST provenant de l'application front-end, nous devrons être capables d'extraire l'objet JSON de la demande. Il nous faudra le package body-parser . Installez-le en tant que dépendance de production à l'aide de npm :
+
+npm install --save body-parser
+
+Il faut donc ensuite l'importer dans le fichier app.js : 
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+// Quand on clique "valider" au niveau du formulaire frontend, cela va envoyer une requête POST à la même route (/api/stuff), on utilise un app.post pour traiter les requêtes POST et non un app.use qui va traiter TOUS types de requêtes, et ce n'est pas le comportement qu'on attend
+app.post('/api/stuff', (req, res, next) => {
+// Il va falloir traiter les données associées à cette requête, autrement dit d'extraire l'objet JSON de la demande en provenance du frontend : il faut donc body-parser. Il faut qu'elle soit soit formatée pour être utilisée. La méthode va permettre de transformer la demande en objet javascript utilisable (le JSON)
+Ce console.log va permettre d'afficher dans le terminal VSC l'objet JSON après que nous ayons cliqué sur "valider" pour mettre en vente un objet avec le titre, le prix, la description et l'URL de l'image. On reçoit bien l'objet dans le terminal grâce au console.log mais on aura encore le spinner sur le site car il faut une réponse
+  console.log(req.body);
+On ajoute un code 201 pour une ressourse créée avec un message
+  res.status(201).json({
+    message: 'Objet créé !'
+  });
+}); Il n'y plus le spinner, pas de soucis avec la requête, mais on ne peut voir uniquement l'objet JSON dans le terminal pour le moment on n'a pas de moyens de l'enregister, il nous faut donc une BDD pour rendre le tout dynamique
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On crée deux objets
+  const stuff = [
+    {
+      _id: 'oeihfzeoi',
+      title: 'Mon premier objet',
+      description: 'Les infos de mon premier objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 4900,
+      userId: 'qsomihvqios',
+    },
+    {
+      _id: 'oeihfzeomoihi',
+      title: 'Mon deuxième objet',
+      description: 'Les infos de mon deuxième objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 2900,
+      userId: 'qsomihvqios',
+    },
+  ];
+  res.status(200).json(stuff);
+}); on attribue un code 200 pour une réponse réussi, et le stuff en JSON qu'on verra donc apparaître dans postman, mais on aura rien pour le moment au niveau frontend : on a donc un problème entre le navigateur et le serveur.
+
+module.exports = app;
+
+CHAPITRE 2
+
+1. Configurez votre base de données
+
+Jusqu'à présent, nous n'avons pas pu faire persister de données ou rendre notre application entièrement dynamique. Mais tout cela est sur le point de changer, car nous intégrons la couche de base de données de notre serveur : MongoDB.
+
+Bien qu'il soit possible de télécharger et d'exécuter MongoDB sur votre propre machine (reportez-vous au site Web de MongoDB pour en savoir plus), pour ce cours nous utiliserons la couche gratuite de MongoDB Atlas, la « database as a service » (base de données en tant que service).
+
+Connectez l'api à notre cluster MongoDB
+
+npm install --save mongoose
+
+
+Il faut donc importer Mongoose dans le fichier app.js
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+// Quand on clique "valider" au niveau du formulaire frontend, cela va envoyer une requête POST à la même route (/api/stuff), on utilise un app.post pour traiter les requêtes POST et non un app.use qui va traiter TOUS types de requêtes, et ce n'est pas le comportement qu'on attend
+app.post('/api/stuff', (req, res, next) => {
+// Il va falloir traiter les données associées à cette requête, autrement dit d'extraire l'objet JSON de la demande en provenance du frontend : il faut donc body-parser. Il faut qu'elle soit soit formatée pour être utilisée. La méthode va permettre de transformer la demande en objet javascript utilisable (le JSON)
+Ce console.log va permettre d'afficher dans le terminal VSC l'objet JSON après que nous ayons cliqué sur "valider" pour mettre en vente un objet avec le titre, le prix, la description et l'URL de l'image. On reçoit bien l'objet dans le terminal grâce au console.log mais on aura encore le spinner sur le site car il faut une réponse
+  console.log(req.body);
+On ajoute un code 201 pour une ressourse créée avec un message
+  res.status(201).json({
+    message: 'Objet créé !'
+  });
+}); Il n'y plus le spinner, pas de soucis avec la requête, mais on ne peut voir uniquement l'objet JSON dans le terminal pour le moment on n'a pas de moyens de l'enregister, il nous faut donc une BDD pour rendre le tout dynamique
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On crée deux objets
+  const stuff = [
+    {
+      _id: 'oeihfzeoi',
+      title: 'Mon premier objet',
+      description: 'Les infos de mon premier objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 4900,
+      userId: 'qsomihvqios',
+    },
+    {
+      _id: 'oeihfzeomoihi',
+      title: 'Mon deuxième objet',
+      description: 'Les infos de mon deuxième objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 2900,
+      userId: 'qsomihvqios',
+    },
+  ];
+  res.status(200).json(stuff);
+}); on attribue un code 200 pour une réponse réussi, et le stuff en JSON qu'on verra donc apparaître dans postman, mais on aura rien pour le moment au niveau frontend : on a donc un problème entre le navigateur et le serveur.
+
+module.exports = app;
+
+
+2. Créez un shéma de données
+
+Grâce à mongoose on peut créer des schémas de données pour obliger que chaque objet ait les caractéristiques attendues
+
+Il faut donc créer un fichier thing.js dans un dossier models avec un schéma : 
+
+Le shéma mongoose doit refléter les différents champs attendus par le backend comme dans l'exemple du middleware qu'on a utilisé plus haut.
+
+const mongoose = require('mongoose');
+
+On utilise la fonction shéma mis à disposition par mongoose et va créer un objet shéma. L'id est généré automatiquement par MongoDB
+const thingSchema = mongoose.Schema({
+  title: { type: String, required: true }, la clé est le nom du champs ici c'est title, idem pour les autres
+  description: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  userId: { type: String, required: true },
+  price: { type: Number, required: true },
+});
+
+module.exports = mongoose.model('Thing', thingSchema);
+On exporte ce shéma afin de pouvoir utiliser le modèle terminé, avec ce code simple, on a un shéma de données et on peut l'exporter, on va donc pouvoir utiliser ce modèle pour intéragir avec l'application
+
+Enregistrez et récupérez des données
+
+En utilisant le modèle Thing que nous avons créé dans le chapitre précédent, nous allons exploiter Mongoose. Vous verrez que l'enregistrement et la récupération de données dans la base de données est un jeu d'enfant ! Commençons par implémenter correctement notre route POST.
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On importe le modèle mongoose
+const Thing = require('./models/thing');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+// CE CODE EST REMPLACE PAR CELUI DU DESSOUS POUR LA REQUETE POST
+// Quand on clique "valider" au niveau du formulaire frontend, cela va envoyer une requête POST à la même route (/api/stuff), on utilise un app.post pour traiter les requêtes POST et non un app.use qui va traiter TOUS types de requêtes, et ce n'est pas le comportement qu'on attend
+app.post('/api/stuff', (req, res, next) => {
+// Il va falloir traiter les données associées à cette requête, autrement dit d'extraire l'objet JSON de la demande en provenance du frontend : il faut donc body-parser. Il faut qu'elle soit soit formatée pour être utilisée. La méthode va permettre de transformer la demande en objet javascript utilisable (le JSON)
+Ce console.log va permettre d'afficher dans le terminal VSC l'objet JSON après que nous ayons cliqué sur "valider" pour mettre en vente un objet avec le titre, le prix, la description et l'URL de l'image. On reçoit bien l'objet dans le terminal grâce au console.log mais on aura encore le spinner sur le site car il faut une réponse
+  console.log(req.body);
+On ajoute un code 201 pour une ressourse créée avec un message
+  res.status(201).json({
+    message: 'Objet créé !'
+  });
+}); Il n'y plus le spinner, pas de soucis avec la requête, mais on ne peut voir uniquement l'objet JSON dans le terminal pour le moment on n'a pas de moyens de l'enregister, il nous faut donc une BDD pour rendre le tout dynamique
+
+// CECI EST LA NOUVELLE ROUTE POST
+
+app.post('/api/stuff', (req, res, next) => {
+Vu que l'id est généré par MongoDB on doit retirer le champs avant de copier l'objet
+  delete req.body._id;
+On crée une constante avec une nouvelle instance, on pourrait écrire tile : req.body.title et ainsi de suite mais on peut utiliser spread
+  const thing = new Thing({
+    ...req.body
+  });
+On enregistre grâce à la méthode save qui enregistre l'objet dans la base de données MongoDB
+  thing.save()
+Il faut renvoyer une réponse au frontend sinon on a une expiration de la requête
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+Et dans le catch on met un code erreur
+    .catch(error => res.status(400).json({ error }));
+});
+Une fois que cette route est enregistrée, on repart sur le frontend et on va mettre en vente un nouvel objet, le post a bien fonctionné, il nous MANQUE juste donc une route GET pour aller dans la base et renvoyer cet objet statique.
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On crée deux objets
+  const stuff = [
+    {
+      _id: 'oeihfzeoi',
+      title: 'Mon premier objet',
+      description: 'Les infos de mon premier objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 4900,
+      userId: 'qsomihvqios',
+    },
+    {
+      _id: 'oeihfzeomoihi',
+      title: 'Mon deuxième objet',
+      description: 'Les infos de mon deuxième objet',
+      imageUrl: 'https://cdn.pixabay.com/photo/2019/06/11/18/56/camera-4267692_1280.jpg',
+      price: 2900,
+      userId: 'qsomihvqios',
+    },
+  ];
+  res.status(200).json(stuff);
+}); on attribue un code 200 pour une réponse réussi, et le stuff en JSON qu'on verra donc apparaître dans postman, mais on aura rien pour le moment au niveau frontend : on a donc un problème entre le navigateur et le serveur.
+
+module.exports = app;
+
+
+Récupération de la liste des things en vente
+
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On importe le modèle mongoose
+const Thing = require('./models/thing');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+// CE CODE EST REMPLACE PAR CELUI DU DESSOUS POUR LA REQUETE POST
+// Quand on clique "valider" au niveau du formulaire frontend, cela va envoyer une requête POST à la même route (/api/stuff), on utilise un app.post pour traiter les requêtes POST et non un app.use qui va traiter TOUS types de requêtes, et ce n'est pas le comportement qu'on attend
+app.post('/api/stuff', (req, res, next) => {
+// Il va falloir traiter les données associées à cette requête, autrement dit d'extraire l'objet JSON de la demande en provenance du frontend : il faut donc body-parser. Il faut qu'elle soit soit formatée pour être utilisée. La méthode va permettre de transformer la demande en objet javascript utilisable (le JSON)
+Ce console.log va permettre d'afficher dans le terminal VSC l'objet JSON après que nous ayons cliqué sur "valider" pour mettre en vente un objet avec le titre, le prix, la description et l'URL de l'image. On reçoit bien l'objet dans le terminal grâce au console.log mais on aura encore le spinner sur le site car il faut une réponse
+  console.log(req.body);
+On ajoute un code 201 pour une ressourse créée avec un message
+  res.status(201).json({
+    message: 'Objet créé !'
+  });
+}); Il n'y plus le spinner, pas de soucis avec la requête, mais on ne peut voir uniquement l'objet JSON dans le terminal pour le moment on n'a pas de moyens de l'enregister, il nous faut donc une BDD pour rendre le tout dynamique
+
+// CECI EST LA NOUVELLE ROUTE POST
+
+app.post('/api/stuff', (req, res, next) => {
+Vu que l'id est généré par MongoDB on doit retirer le champs avant de copier l'objet
+  delete req.body._id;
+On crée une constante avec une nouvelle instance, on pourrait écrire tile : req.body.title et ainsi de suite mais on peut utiliser spread
+  const thing = new Thing({
+    ...req.body
+  });
+On enregistre grâce à la méthode save qui enregistre l'objet dans la base de données MongoDB
+  thing.save()
+Il faut renvoyer une réponse au frontend sinon on a une expiration de la requête
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+Et dans le catch on met un code erreur
+    .catch(error => res.status(400).json({ error }));
+});
+Une fois que cette route est enregistrée, on repart sur le frontend et on va mettre en vente un nouvel objet, le post a bien fonctionné.
+
+
+// NOUVELLE ROUTE GET
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On utilise la méthode find et on veut donc la liste COMPLETE des objets se trouvant dans la base, donc le tableau de tous les things retournés par la base
+  Thing.find()
+    .then(things => res.status(200).json(things)) code 200 OK et on retourne le tableau de la base de données
+    .catch(error => res.status(400).json({ error })); ici on gère les erreur dans l'objet error
+});
+
+module.exports = app;
+
+En faisant une refresh on a bien accéder à l'objet que nous avions créé en amont, si on ajoute un 2nd objet ça fonctionne, l'application est devenue dynamique.
+
+Il nous faut donc maintenant une requête GET pour un seul objet, autrement dit le moment où on décide de cliquer sur un objet en vente sur le frontend pour voir la fiche de l'objet et éventuellement le modifier ou le supprimer.
+
+
+Récupération d'un thing spécifique
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On importe le modèle mongoose
+const Thing = require('./models/thing');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+app.post('/api/stuff', (req, res, next) => {
+Vu que l'id est généré par MongoDB on doit retirer le champs avant de copier l'objet
+  delete req.body._id;
+On crée une constante avec une nouvelle instance, on pourrait écrire tile : req.body.title et ainsi de suite mais on peut utiliser spread
+  const thing = new Thing({
+    ...req.body
+  });
+On enregistre grâce à la méthode save qui enregistre l'objet dans la base de données MongoDB
+  thing.save()
+Il faut renvoyer une réponse au frontend sinon on a une expiration de la requête
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+Et dans le catch on met un code erreur
+    .catch(error => res.status(400).json({ error }));
+});
+Une fois que cette route est enregistrée, on repart sur le frontend et on va mettre en vente un nouvel objet, le post a bien fonctionné.
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On utilise la méthode find et on veut donc la liste COMPLETE des objets se trouvant dans la base, donc le tableau de tous les things retournés par la base
+  Thing.find()
+    .then(things => res.status(200).json(things)) code 200 OK et on retourne le tableau de la base de données
+    .catch(error => res.status(400).json({ error })); ici on gère les erreur dans l'objet error
+});
+
+// Quand on est sur le frontend et que l'on clique sur un objet en vente, on voit dans l'url le thing ainsi que son ID et on modifie l'url qu'on passe en argument, il faut donc aller chercher cet identifiant dans la route qui est utilisée, on va utiliser :id (cette partie de la route est dynamique je vais y accéder avec req.params.id
+app.get('/api/stuff/:id', (req, res, next) => {
+// On utilise la méthode findOne et on lui passe un objet qui est un objet de comparaison, on veut que l'id du thing en vente soit le même que le paramètre de requête
+  Thing.findOne({ _id: req.params.id })
+    .then(thing => res.status(200).json(thing)) on retourne une réponse et l'objet
+    .catch(error => res.status(404).json({ error })); ici on gère l'erreur avec une erreur 404 pour dire que l'objet n'est pas trouvé
+});
+
+module.exports = app;
+
+
+Modifiez et supprimez des données
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On importe le modèle mongoose
+const Thing = require('./models/thing');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse :
+
+app.post('/api/stuff', (req, res, next) => {
+Vu que l'id est généré par MongoDB on doit retirer le champs avant de copier l'objet
+  delete req.body._id;
+On crée une constante avec une nouvelle instance, on pourrait écrire tile : req.body.title et ainsi de suite mais on peut utiliser spread
+  const thing = new Thing({
+    ...req.body
+  });
+On enregistre grâce à la méthode save qui enregistre l'objet dans la base de données MongoDB
+  thing.save()
+Il faut renvoyer une réponse au frontend sinon on a une expiration de la requête
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+Et dans le catch on met un code erreur
+    .catch(error => res.status(400).json({ error }));
+});
+Une fois que cette route est enregistrée, on repart sur le frontend et on va mettre en vente un nouvel objet, le post a bien fonctionné.
+
+// On ajoute un premier argument l'url visé par l'application, la route ou le end-point, et l'application frontend va essayer de faire une requête à cette url = /api/stuf
+app.use('/api/stuff', (req, res, next) => {
+// On utilise la méthode find et on veut donc la liste COMPLETE des objets se trouvant dans la base, donc le tableau de tous les things retournés par la base
+  Thing.find()
+    .then(things => res.status(200).json(things)) code 200 OK et on retourne le tableau de la base de données
+    .catch(error => res.status(400).json({ error })); ici on gère les erreur dans l'objet error
+});
+
+// Quand on est sur le frontend et que l'on clique sur un objet en vente, on voit dans l'url le thing ainsi que son ID et on modifie l'url qu'on passe en argument, il faut donc aller chercher cet identifiant dans la route qui est utilisée, on va utiliser :id (cette partie de la route est dynamique je vais y accéder avec req.params.id
+app.get('/api/stuff/:id', (req, res, next) => {
+// On utilise la méthode findOne et on lui passe un objet qui est un objet de comparaison, on veut que l'id du thing en vente soit le même que le paramètre de requête
+  Thing.findOne({ _id: req.params.id })
+    .then(thing => res.status(200).json(thing)) on retourne une réponse et l'objet
+    .catch(error => res.status(404).json({ error })); ici on gère l'erreur avec une erreur 404 pour dire que l'objet n'est pas trouvé
+});
+
+// On doit ajouter une route PUT pour la modification d'un objet existant, en utilisant la même route
+app.put('/api/stuff/:id', (req, res, next) => {
+// On utilise la méthode updateOne, le premier arguement est l'objet de comparaison (celui dont l'id est = à l'id qui est envoyé dans le paramaètre de requête) et le second est le nouvel objet (donc l'objet qui est dans le corps de la requête et on doit dire que l'id correspond à celui des paramètres
+  Thing.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }) on retourne une promise
+    .then(() => res.status(200).json({ message: 'Objet modifié !'})) on renvoie juste une réponse OK avec un message
+    .catch(error => res.status(400).json({ error })); ici on gère l'erreur avec un code 400
+});
+
+On peut donc modifier un objet
+
+// Dernière route, avec la route delele, on utilise la même route avec le même middleware
+app.delete('/api/stuff/:id', (req, res, next) => {
+// On utilise la méthode deleteONe
+  Thing.deleteOne({ _id: req.params.id })
+    .then(() => res.status(200).json({ message: 'Objet supprimé !'})) on renvoie juste une réponse OK avec un message
+    .catch(error => res.status(400).json({ error })); ici on gère l'erreur avec un code 400
+});
+
+module.exports = app;
+
+
+CHAPITRE 3
+
+1. Optimisez la structure du backend
+
+Il ne faut tout garder dans un seul fichier, il faut donc déplacer les routes dans un fichier à part pour mieux identifier les end-points et on mettra les controllers à part
+
+La première chose que nous allons faire est de dissocier notre logique de routing et la logique globale de l'application. Créez, dans votre dossier backend , un dossier routes puis, dans ce nouveau dossier, un fichier stuff.js . Celui-ci contiendra la logique de nos routes stuff :
+
+DANS UN PREMIER TEMPS ON VA COUPER TOUTES LES ROUTES PRESENTES DANS APP.JS ET LES METTRE DANS LE FICHIER STUFF DU DOSSIER ROUTES
+
+ON DEPORTE DONC LES ROUTES DE LA MANIERE SUIVANTE
+
+const express = require('express');
+const router = express.Router();
+
+const Thing = require('../models/thing');
+
+// !!! on modifie la route, car on avait /api/stuff au début de chaque route, on va remplacer par / ou /:id !!!
+
+router.post('/', (req, res, next) => {
+  const thing = new Thing({
+    title: req.body.title,
+    description: req.body.description,
+    imageUrl: req.body.imageUrl,
+    price: req.body.price,
+    userId: req.body.userId
+  });
+  thing.save().then(
+    () => {
+      res.status(201).json({
+        message: 'Post saved successfully!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+});
+
+router.get('/:id', (req, res, next) => {
+  Thing.findOne({
+    _id: req.params.id
+  }).then(
+    (thing) => {
+      res.status(200).json(thing);
+    }
+  ).catch(
+    (error) => {
+      res.status(404).json({
+        error: error
+      });
+    }
+  );
+});
+
+router.put('/:id', (req, res, next) => {
+  const thing = new Thing({
+    _id: req.params.id,
+    title: req.body.title,
+    description: req.body.description,
+    imageUrl: req.body.imageUrl,
+    price: req.body.price,
+    userId: req.body.userId
+  });
+  Thing.updateOne({_id: req.params.id}, thing).then(
+    () => {
+      res.status(201).json({
+        message: 'Thing updated successfully!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+});
+
+router.delete('/:id', (req, res, next) => {
+  Thing.deleteOne({_id: req.params.id}).then(
+    () => {
+      res.status(200).json({
+        message: 'Deleted!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+});
+
+router.get('/' +
+  '', (req, res, next) => {
+  Thing.find().then(
+    (things) => {
+      res.status(200).json(things);
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+});
+
+module.exports = router;
+
+
+PAR CONSEQUENT DANS APP.JS ON DOIT DESORMAIS IMPORTER NOTRE ROUTER
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On supprime cette importation car elle se trouve maintentant dans le fichier suff.js du dossier routes
+//const Thing = require('./models/thing');
+
+// On importe notre router comportant toutes les routes
+const stuffRoutes = require('./routes/stuff');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse
+
+Vu qu'on a importe notre router, on va dire que pour cette route on va utiliser le router proposé par stuffRoutes
+app.use('/api/stuff', stuffRoutes);
+
+module.exports = app;
+
+
+Configurez les controllers
+
+Pour rendre notre structure encore plus modulaire, simplifier la lecture et la gestion de notre code, nous allons séparer la logique métier de nos routes en contrôleurs.
+
+Créez un dossier controllers dans votre dossier backend et créez un autre fichier stuff.js . Celui-ci sera notre contrôleur stuff . Copions le premier élément de logique métier de la route POST vers notre contrôleur :
+
+Dans le fichier stuff.js du dossier controllers :
+
+On prend toute la logique métier pour la déporter dans le dossiers controllers dans le fichier stuff.js
+Et on garde que la logique de routing dans le fichier stuff.js du dossier router, on prend donc toutes les fonctions de chaque. On importe aussi le model Thing. Et on ajoutera le controller stuff avec une constante stuffCtrl dans le stuff.js du dossier router.
+
+const Thing = require('../models/thing');
+
+exports.createThing = (req, res, next) => {
+  const thing = new Thing({
+    title: req.body.title,
+    description: req.body.description,
+    imageUrl: req.body.imageUrl,
+    price: req.body.price,
+    userId: req.body.userId
+  });
+  thing.save().then(
+    () => {
+      res.status(201).json({
+        message: 'Post saved successfully!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+};
+
+exports.getOneThing = (req, res, next) => {
+  Thing.findOne({
+    _id: req.params.id
+  }).then(
+    (thing) => {
+      res.status(200).json(thing);
+    }
+  ).catch(
+    (error) => {
+      res.status(404).json({
+        error: error
+      });
+    }
+  );
+};
+
+exports.modifyThing = (req, res, next) => {
+  const thing = new Thing({
+    _id: req.params.id,
+    title: req.body.title,
+    description: req.body.description,
+    imageUrl: req.body.imageUrl,
+    price: req.body.price,
+    userId: req.body.userId
+  });
+  Thing.updateOne({_id: req.params.id}, thing).then(
+    () => {
+      res.status(201).json({
+        message: 'Thing updated successfully!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+};
+
+exports.deleteThing = (req, res, next) => {
+  Thing.deleteOne({_id: req.params.id}).then(
+    () => {
+      res.status(200).json({
+        message: 'Deleted!'
+      });
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+};
+
+exports.getAllStuff = (req, res, next) => {
+  Thing.find().then(
+    (things) => {
+      res.status(200).json(things);
+    }
+  ).catch(
+    (error) => {
+      res.status(400).json({
+        error: error
+      });
+    }
+  );
+};
+
+Dans le fichier stuff.js du dossier router : 
+
+const express = require('express');
+const router = express.Router();
+
+const stuffCtrl = require('../controllers/stuff');
+
+Cela permet de voir plus clairement quelles sont les routes dont on dispose et on utilisera une sémantique très clair pour comprendre ce qu'elles permettent. On a quelque chose de plus modulaire plus facile à comprendre et plus facile à maintenir
+
+router.get('/', stuffCtrl.getAllStuff);
+router.post('/', stuffCtrl.createThing);
+router.get('/:id', stuffCtrl.getOneThing);
+router.put('/:id', stuffCtrl.modifyThing);
+router.delete('/:id', stuffCtrl.deleteThing);
+
+module.exports = router;
+
+
+2. Préparez la base de données pour les informations d'authentification
+
+
+Ne jamais enregisitrer des mdp non cryptés, il faut donc utilisé bcrypt avec un algorithme non réversible
+Si 2 hashs viennent de la même chaîne de caractères on sait qu'il s'agit de l'utilisateur qui souhaite se reconnecter. On compare les hashs différents mais bcrypt sait si ils ont été produits par la même chaîne.
+
+On doit donc créer un model user avec mongoose
+
+const mongoose = require('mongoose');
+// On rajoute un package npm install --save mongoose-unique-validator
+// On rajoute ce validateur comme plugin
+const uniqueValidator = require('mongoose-unique-validator');
+
+//On crée notre shéma
+const userSchema = mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }
+});
+
+Ce validateur on va l'appliquer au schéma avant d'en faire un modèle et on appelle la méthode plugin et on lui passe uniqueValidator
+userSchema.plugin(uniqueValidator);
+
+On exporte ce shéma sous forme de modèle : le modèle s'appellera user et on lui passe le shéma de données
+module.exports = mongoose.model('User', userSchema);
+
+
+3. Créez des utilisateurs
+
+Il faut donc créer un router spécifique pour l'authentification
+
+il faut créer deux fichiers user.js dans les dossiers routes et controllers
+
+Dans user.js du dossier controllers
+
+exports.signup = (req, res, next) => {
+
+};
+
+exports.login = (req, res, next) => {
+
+};
+
+Dans user.js du dossier routes
+
+const express = require('express');
+const router = express.Router();
+
+// On associe les fonctions aux différentes routes
+const userCtrl = require('../controllers/user');
+
+// Deux routes POST signup et login avec les fonctions dédiées qu'on va implémenter car on a juste pour le moment l'infrastructure du controller
+router.post('/signup', userCtrl.signup);
+router.post('/login', userCtrl.login);
+
+module.exports = router;
+
+Puis dans app.js on importe notre routeur et on l'enregistre
+
+const express = require('express');
+// Il faut donc importe body-parser
+const bodyParser = require('body-parser');
+
+const mongoose = require('mongoose');
+
+// On supprime cette importation car elle se trouve maintentant dans le fichier suff.js du dossier routes
+//const Thing = require('./models/thing');
+
+// On importe notre router comportant toutes les routes
+const stuffRoutes = require('./routes/stuff');
+
+// On importe notre router concernant les utilisateurs
+const userRoutes = require('./routes/user');
+
+const app = express();
+
+//Après enregistrement voire redémarrage de votre serveur Node si nécessaire, vous devriez voir le message « Connexion à MongoDB Atlas réussie ! » dans la console. Votre API est à présent connectée à votre base de données et nous pouvons commencer à créer des routes serveur afin d'en bénéficier.
+mongoose.connect('mongodb+srv://jimbob:<PASSWORD>@cluster0-pme76.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+// C'est un middleware général, il n'y a pas de routes, et on ajoute des headers
+app.use((req, res, next) => {
+  // On autorise que l'origine pour accéder à l'api, c'est tout le mondfe
+  res.setHeader('Access-Control-Allow-Origin', '*');
+// On peut utilser certains hearders
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+// On peut utiliser certaines méthodes, on les autorise
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json()); on défini sa fonction json comme middleware global pour votre application, juste après avoir défini les headers de la réponse
+
+Vu qu'on a importe notre router, on va dire que pour cette route on va utiliser le router proposé par stuffRoutes
+app.use('/api/stuff', stuffRoutes);
+
+On va pourvoir utiliser la route dédié à l'authentification
+app.use('/api/auth', userRoutes);
+
+module.exports = app;
+
+
+
+3. Créez des utilisateurs
+
+Il nous faudra le package de chiffrement bcrypt pour notre fonction signup . Installons-le donc dans notre projet : 
+
+npm install --save bcrypt
+
+// On a besoin du model User
+const User = require('../model/User');
+
+// On a besoin du package de cryptage
+const bcrypt ) require('bcrypt');
+
+// On va donc devoir "hasher" le mdp grâce à un hash générer par bcrypt
+exports.signup = (req, res, next) => {
+// On appelle la métode hash de bcrypt et on lui passe le mdp de l'utilisateur, le salte ce sera combien de tours on fait faire à l'algorithme
+  bcrypt.hash(req.body.password, 10)
+// On récupère le hash de mdp qu'on va enregister en tant que nouvel utilisateur dans la BBD mongoDB
+    .then(hash => {
+// Création du nouvel utilisateur avec le model mongoose
+      const user = new User({
+// On passe l'email qu'on trouve dans le corps dans la requête
+        email: req.body.email,
+// On récupère le mdp hashé de bcrypt
+        password: hash
+      });
+// On sauvegarde l'utilisateur
+      user.save()
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+        .catch(error => res.status(400).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
+};
+
+
+Implémentez la fonction login
+
+exports.login = (req, res, next) => {
+// On doit trouver l'user dans la BDD qui correspond à l'adresse entrée par l'utilisateur
+  User.findOne({ email: req.body.email })
+    .then(user => {
+// Si on trouve pas d'user on va renvoyer un 401 "non autorisé"
+      if (!user) {
+        return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+      }
+// On utilise bcrypt pour comparer les hashs comment on l'a vu
+      bcrypt.compare(req.body.password, user.password)
+        .then(valid => {
+          if (!valid) {
+// Si false c'est que ce n'est pas le bon utilisateur, ou mdp incorrect
+            return res.status(401).json({ error: 'Mot de passe incorrect !' });
+          }
+          res.status(200).json({
+// Si true on renvoie un statut 200 et un objet JSON avec un userID autrement l'identifiant de l'utilisateur et un TOKEN
+            userId: user._id,
+            token: 'TOKEN'
+          });
+        })
+        .catch(error => res.status(500).json({ error })); ici erreur serveur
+    })
+    .catch(error => res.status(500).json({ error })); ici erreur serveur
+};
+
+
+5. Créez des tokens d'authentification
+
+Les tokens d'authentification permettent aux utilisateurs de ne se connecter qu'une seule fois à leur compte. Au moment de se connecter, ils recevront leur token et le renverront automatiquement à chaque requête par la suite. Ceci permettra au back-end de vérifier que la requête est authentifiée.
+
+Pour pouvoir créer et vérifier les tokens d'authentification, il nous faudra un nouveau package :
+
+npm install --save jsonwebtoken
+
+Dans notre controller user.js
+
+const jwt = require('jsonwebtoken');
+
+exports.login = (req, res, next) => {
+// On doit trouver l'user dans la BDD qui correspond à l'adresse entrée par l'utilisateur
+  User.findOne({ email: req.body.email })
+    .then(user => {
+// Si on trouve pas d'user on va renvoyer un 401 "non autorisé"
+      if (!user) {
+        return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+      }
+// On utilise bcrypt pour comparer les hashs comment on l'a vu
+      bcrypt.compare(req.body.password, user.password)
+        .then(valid => {
+          if (!valid) {
+// Si false c'est que ce n'est pas le bon utilisateur, ou mdp incorrect
+            return res.status(401).json({ error: 'Mot de passe incorrect !' });
+          }
+          res.status(200).json({
+            userId: user._id,
+            token: jwt.sign(
+              { userId: user._id },
+// Permet de vérifier si la requête est authentifiée, et on va pouvoir obtenir un token encodé pour cette authentification grâce à jsonwebtoken, on va créer des tokens et les vérifier, cette fonction jwt.sign on va encoder ce qui suit et on aura une clé secrète
+              'RANDOM_TOKEN_SECRET',
+// Argument de configuration avec une expiration au bout de 24h
+              { expiresIn: '24h' }
+            )
+          });
+        })
+        .catch(error => res.status(500).json({ error })); ici erreur serveur
+    })
+    .catch(error => res.status(500).json({ error })); ici erreur serveur
+};
+
+
+6. Configurez le middleware d'authentification
+
+
+Nous allons à présent créer le middleware qui protégera les routes sélectionnées et vérifier que l'utilisateur est authentifié avant d'autoriser l'envoi de ses requêtes.
+
+Créez un dossier middleware et un fichier auth.js à l'intérieur :
+
+Le middleware doit vérifier le token qui est envoyé
+
+// On a besoin du package jsonwebtoken
+const jwt = require('jsonwebtoken');
+
+module.exports = (req, res, next) => {
+// Bloc try et catch car plusieurs éléments peuvent poser problème
+  try {
+// On récupère le token dans le header autorisation (cf. le frontend dans network), on connait la forme de ce header, on utilise le header authorisation de la requête on récupère uniquement le deuxième élément du tableau (car split)
+    const token = req.headers.authorization.split(' ')[1];
+// On décode le token on utilise la fonction verify et on vérifie le token en mettant la clé secrète, les clés doivent correspondre
+    const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+// On récupère le userID
+    const userId = decodedToken.userId;
+// Si on a un user ID dans le corps de la requête et qu'il est différent du userID on dit que c'est invalid sinon next()
+    if (req.body.userId && req.body.userId !== userId) {
+      throw 'Invalid user ID';
+    } else {
+      next();
+    }
+  } catch {
+    res.status(401).json({
+      error: new Error('Invalid request!') 
+    }); erreur 401 pour un pb d'authentification
+  }
+};
+
+Maintenant, nous devons appliquer ce middleware à nos routes stuff , qui sont celles à protéger. Dans notre routeur stuff , nous importons notre middleware et le passons comme argument aux routes à protéger :
+
+const express = require('express');
+const router = express.Router();
+
+// On importe le middleware d'authentification
+const auth = require('../middleware/auth');
+
+const stuffCtrl = require('../controllers/stuff');
+
+router.get('/', auth, stuffCtrl.getAllStuff);
+router.post('/', auth, stuffCtrl.createThing);
+router.get('/:id', auth, stuffCtrl.getOneThing);
+router.put('/:id', auth, stuffCtrl.modifyThing);
+router.delete('/:id', auth, stuffCtrl.deleteThing);
+
+module.exports = router;
+
+
+CHAPITRE 4 
+
+1. Acceptez les fichiers entrants avec multer
+
+Dans cette dernière partie du cours, nous allons implémenter des téléchargements de fichiers pour que les utilisateurs puissent télécharger des images d'articles à vendre. Pour ce faire, nous utiliserons multer , un package qui nous permet de gérer les fichiers entrants dans les requêtes HTTP. Commençons par installer multer et par créer un élément de middleware pour gérer ces fichiers entrants.
+
+npm install --save multer
+
+On crée un dossier images
+
+Vous pouvez maintenant créer un middleware dans notre dossier middleware appelé multer-config.js :
+
+// On importe multer
+const multer = require('multer');
+
+// Dico mim_type
+const MIME_TYPES = {
+  'image/jpg': 'jpg',
+  'image/jpeg': 'jpg',
+  'image/png': 'png'
+};
+
+// On crée un objet de configuration
+// On va enregistrer sur le disque
+const storage = multer.diskStorage({
+// On donne la destination d'enregistrement des fichiers
+  destination: (req, file, callback) => {
+// On passe le dossier images qu'on a créé dans le backend
+    callback(null, 'images');
+  },
+// On explique à multer quel nom de fichier on utilise
+  filename: (req, file, callback) => {
+// On génère le nouveau nom avec le nom d'origine, on supprime les espaces (white space avec split) et on insère des underscores à la place
+    const name = file.originalname.split(' ').join('_');
+// On applique une extension au fichier, en accédant à son mime_type, on génère l'extension, et on se réfère au dictionnaire ci-dessus
+    const extension = MIME_TYPES[file.mimetype];
+// On appelle le callback, on passe null pour dire qu'il n'y a pas d'erreur, et on crée le filename en entier, on ajoute un timestamp, un point et enfin l'extension du fichier
+    callback(null, name + Date.now() + '.' + extension);
+  }
+});
+
+// On export notre module, on lui passe l'objet storage, la méthode single pour dire que c'est un fichier unique et on précise que c'est une image
+module.exports = multer({storage: storage}).single('image');
+
+2. Modifiez les routes pour prendre en compte les fichiers
+
+Pour que notre middleware de téléchargement de fichiers fonctionne sur nos routes, nous devrons les modifier, car le format d'une requête contenant un fichier du front-end est différent.
+
+const express = require('express');
+const router = express.Router();
+
+const auth = require('../middleware/auth');
+
+// On importe le middleware multer
+const multer = require('../middleware/multer-config');
+
+const stuffCtrl = require('../controllers/stuff');
+
+router.get('/', auth, stuffCtrl.getAllStuff);
+// On ajoute multer à la route POST, toujours mettre multer APRES la requête d'authentification
+router.post('/', auth, multer, stuffCtrl.createThing);
+router.get('/:id', auth, stuffCtrl.getOneThing);
+router.put('/:id', auth, stuffCtrl.modifyThing);
+router.delete('/:id', auth, stuffCtrl.deleteThing);
+
+module.exports = router;
+
+MAIS on doit aussi modifier la logique métier de la création d'objet dans le fichier stuff.js du dossier controller car le format de la requête a changé !
+
+exports.createThing = (req, res, next) => {
+// On va extraire l'objet JSON
+  const thingObject = JSON.parse(req.body.thing);
+// On utilise thingObject
+  delete thingObject._id;
+  const thing = new Thing({
+    ...thingObject,
+// On modifie l'URL de l'image, on veut l'URL complète, quelque chose dynamique avec les segments de l'URL
+// req.protocol = http ou https
+// req.get('host') = localhost.3000
+// req.file.name = le nom de l'image
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+  });
+  thing.save()
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+    .catch(error => res.status(400).json({ error }));
+};
+
+Et donc app.js il faudra dire à l'application express de servir ce dossier image avec un middleware + la const path qui donne accès au chemin du système de fichier
+
+const path = require('path')
+
+app.use('/images', express.static(path.join(__dirnma, 'images')
+
+Il nous reste à modifier la route PUT pour la modification des objets
+
+
+Modifiez la route PUT
+
+La modification de notre route PUT est sensiblement plus compliquée, car nous devons prendre en compte deux possibilités : l'utilisateur a mis à jour l'image, ou pas. Dans le premier cas, nous recevrons l'élément form-data et le fichier. Dans le second cas, nous recevrons uniquement les données JSON.
+
+Tout d'abord, ajoutons multer comme middleware à notre route PUT :
+
+const express = require('express');
+const router = express.Router();
+
+const auth = require('../middleware/auth');
+const multer = require('../middleware/multer-config');
+
+const stuffCtrl = require('../controllers/stuff');
+
+router.get('/', auth, stuffCtrl.getAllStuff);
+router.post('/', auth, multer, stuffCtrl.createThing);
+router.get('/:id', auth, stuffCtrl.getOneThing);
+// On ajoute multer à la route PUT
+router.put('/:id', auth, multer, stuffCtrl.modifyThing);
+router.delete('/:id', auth, stuffCtrl.deleteThing);
+
+module.exports = router;
+
+
+À présent, nous devons modifier notre fonction modifyThing() pour voir si nous avons reçu ou non un nouveau fichier, et répondre en conséquence :
+
+// Deux situations : 
+- modification info sans nouvelle image
+- modification avec novelle image
+
+Dans le controller 
+
+exports.modifyThing = (req, res, next) => {
+// On utilise l'opérateur ternaire pour savoir si il existe, s'il existe on a un type d'objet sinon on a un autre type d'objet
+  const thingObject = req.file ?
+    {
+// Si le fichier existe, on récupère avec JSON.parse et on génère une nouvelle image
+      ...JSON.parse(req.body.thing),
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+// Si le fichier n'existe pas une fait une copie de req.body
+    } : { ...req.body };
+  Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
+    .then(() => res.status(200).json({ message: 'Objet modifié !'}))
+    .catch(error => res.status(400).json({ error }));
+};
+
+
+3. Modifiez la route DELETE
+
+En ce qui concerne la gestion des fichiers dans notre back-end, il faut absolument nous assurer que, à chaque suppression d'un Thing de la base de données, le fichier image correspondant est également supprimé.
+
+Dans notre contrôleur stuff , il nous faut une nouvelle importation. Il s'agit du package fs de Node :
+
+// On accède aux différents opérations liées au système de fichier
+const fs = require('fs');
+
+exports.deleteThing = (req, res, next) => {
+// Avant de suppr l'objet, on va le chercher pour obtenir l'url de l'image et supprimer le fichier image de la base
+  Thing.findOne({ _id: req.params.id })
+    .then(thing => {
+// Pour extraire ce fichier, on récupère l'url du thing, et on le split autour de la chaine de caractères, donc le nom du fichier
+      const filename = thing.imageUrl.split('/images/')[1];
+// Avec ce nom de fichier, on appelle unlink pour suppr le fichier
+      fs.unlink(`images/${filename}`, () => {
+        Thing.deleteOne({ _id: req.params.id })
+          .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
+          .catch(error => res.status(400).json({ error }));
+      });
+    })
+    .catch(error => res.status(500).json({ error }));
+};
+
+
+Résumé = On trouve l'objet, on extrait le nom du fichier, avec ce nom de fichier on le supprimer avec unlink, et dans le callback on fait la suppr de l'objet dans la base
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

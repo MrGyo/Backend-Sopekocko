@@ -1,1 +1,3 @@
 node_modules
+mongoose.config.js
+auth.config.js
