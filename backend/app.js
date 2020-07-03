@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 // On importe mongooseConfig pour la gestion du mdp user mongoDB et de la clé pour le token
 const mongooseConfig= require('./config/mongoose.config')
+// On corrige le problème relatif à la dépréciation ('https://mongoosejs.com/docs/deprecations.html')
+mongoose.set('useCreateIndex', true);
 // On donne accès au chemin de notre système de fichier
 const path = require('path');
 // On importe la route dédiée aux sauces
