@@ -15,12 +15,13 @@ const sauceRoutes = require('./routes/sauce');
 // On importe la route dédiée aux utilisateurs
 const userRoutes = require('./routes/user')
 
-// L'un des avantages que nous avons à utiliser Mongoose pour gérer notre base de données MongoDB est que nous pouvons implémenter des schémas de données stricts, qui permettent de rendre notre application plus robuste. Commençons par créer un schéma Thing (« chose ») pour tout objet mis en vente dans notre application
+// L'un des avantages que nous avons à utiliser Mongoose pour gérer notre base de données MongoDB est que nous pouvons implémenter des schémas de données stricts, qui permettent de rendre notre application plus robuste
 mongoose.connect(`mongodb+srv://${mongooseConfig.id}:${mongooseConfig.pwd}@cluster0-dgeac.mongodb.net/hottest?retryWrites=true&w=majority`,
 { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
+// On utilise la méthode express
 const app = express();
 
 // Il faut ajouter des headers, des entêtes à l'objet réponse en ajoutant un middleware, C'est un middleware général, il n'y a pas de routes. Cela va permettre à l'application d'accéder à l'api

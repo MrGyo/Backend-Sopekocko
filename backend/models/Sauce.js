@@ -1,3 +1,4 @@
+// On importe mongoose
 const mongoose = require('mongoose');
 
 // Le shéma mongoose doit refléter les différents champs attendus par le backend 

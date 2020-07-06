@@ -1,5 +1,4 @@
-// Création d'un model user avec mongoose
-// On importe mongoose
+// Création d'un model user avec mongoose, on importe donc mongoose
 const mongoose = require('mongoose');
 // On rajoute ce validateur comme plugin
 const uniqueValidator = require('mongoose-unique-validator');
