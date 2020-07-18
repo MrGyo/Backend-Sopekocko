@@ -4,7 +4,7 @@
 const bcrypt = require('bcrypt');
 // On utilise jsonwebtoken pour attribuer un token à l'utilisateur au moment de la connexion
 const jwt = require('jsonwebtoken');
-// On récupère le mode User créer avec le schéma mongoose
+// On récupère le model User créer avec le schéma mongoose
 const User = require('../models/User');
 // On récupère la clef pour le TOKEN
 const config = require('../config/auth.config');

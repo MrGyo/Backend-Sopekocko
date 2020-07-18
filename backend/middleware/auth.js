@@ -1,5 +1,5 @@
 // Middleware qui protégera les routes sélectionnées et vérifier que l'utilisateur est authentifié avant d'autoriser l'envoi de ses requêtes.
-// On implémente l'authentification pour vérifier qu'il s'agit un token valable et vérifier s'il s'agit du bon userID encodé dans le token
+// On implémente l'authentification pour vérifier qu'il s'agit d'un token valable reçu depuis le frontend et vérifier s'il s'agit du bon userID encodé dans le token
 
 // On récupère le package jsonwebtoken
 const jwt = require('jsonwebtoken');
