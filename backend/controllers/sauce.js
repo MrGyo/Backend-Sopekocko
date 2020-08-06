@@ -72,14 +72,18 @@ exports.getAllSauces = (req, res, next) => {
 
 exports.addLikeDislike = (req, res, next) => {
     // Pour la route POST = Ajout/suppression d'un like / dislike à une sauce
+    // Like présent dans le body
     const like = req.body.like
+    // On prend le userID
     const user = req.body.userId
+    // On prend l'id de la sauce
     const sauceId = req.params.id
-    // Clique LIKE
+    // Clique LIKE si = 1
     if (like === 1) { 
       Sauce.updateOne(
         { _id: sauceId },
         {
+          // On push l'utilisateur et on incrémente le compteur de 1
           $push: { usersLiked: user },
           $inc: { likes: like },
         }
@@ -102,7 +106,7 @@ exports.addLikeDislike = (req, res, next) => {
         .catch((error) => res.status(400).json({ error }))
     }
     if (like === 0) { 
-      // Suppresion d'une LIKE ou DISLIKE
+      // Suppression d'une LIKE ou DISLIKE
       Sauce.findOne({ _id: sauceId })
         .then((sauce) => {
           if (sauce.usersLiked.includes(user)) { 
