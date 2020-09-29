@@ -61,6 +61,6 @@ Une fois node sass installé (+ suivi de la procédure dédié au frontend) :
 ```
 ng serve
 ```
-## Synthèse
+Synthèse
 
 Le document de présentation est disponible [ICI](https://github.com/MrGyo/p6/blob/master/soutenance/SOUTENANCE_P6_WEBDEV_20200720_2.pptx)
