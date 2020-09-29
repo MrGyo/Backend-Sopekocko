@@ -15,7 +15,7 @@ Même si l’application deviendra peut-être un magasin en ligne dans un futur 
 * MongoDB
 * Mongoose
 
-# Documentation
+## Documentation
 
 * [Note de cadrage](https://github.com/MrGyo/p6/blob/master/documentation/P6_Note%20de%20cadrage%20So%20Pekocko_V3.pdf)
 * [Guidelines API](https://github.com/MrGyo/p6/blob/master/documentation/Guidelines%2BAPI.pdf)
@@ -61,3 +61,6 @@ Une fois node sass installé (+ suivi de la procédure dédié au frontend) :
 ```
 ng serve
 ```
+## Synthèse
+
+Le document de présentation est disponible [ICI](https://github.com/MrGyo/p6/blob/master/soutenance/SOUTENANCE_P6_WEBDEV_20200720_2.pptx)
