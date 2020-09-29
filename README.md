@@ -1,17 +1,53 @@
-# p6
-Livrables
-le lien vers votre dépôt Git public contenant le code de l’API.
-Pour faciliter votre passage au jury, déposez sur la plateforme, dans un dossier nommé “P6_nom_prenom”, tous les livrables du projet. Chaque livrable doit être nommé avec le numéro du projet et selon l'ordre dans lequel il apparaît, par exemple “P6_01_lienGithub”.
+# OC - Parcours Développeur Web - Projet 6
 
-Soutenance
-La soutenance, d’une durée maximum de 30 minutes, se déroulera en deux parties :
+## Construisez une API sécurisée pour une application d'avis gastronomiques
 
-Partie 1 – 20 minutes : Simulation d'une réunion professionnelle.
+Vous êtes développeur backend freelance et vous travaillez depuis quelques années sur des projets web pour des startups ou des grandes entreprises. La semaine dernière, vous avez reçu un mail vous proposant un nouveau projet. La marque So Pekocko, qui crée des sauces piquantes, connaît un franc succès, en partie grâce à sa chaîne de vidéos YouTube “La piquante”.
 
-L’évaluateur jouera le rôle de Sophie, la product owner de So Pekocko (il pourra vous interrompre pour vous poser des questions).
+L’entreprise souhaite désormais développer une application d’évaluation de ses sauces piquantes, appelée “Piquante”.
 
-[~ 20 minutes] Vous réaliserez une présentation de votre application et expliquerez le fonctionnement de votre code, la structure de votre code et les raisons pour lesquelles vous avez choisi cette structure. Vous devrez également expliquer la méthode utilisée pour sécuriser votre base de données et préciser en quoi elle respecte le RGPD et les standards OWASP. 
-Partie 2 – 10 minutes : Retour sur la soutenance
+Même si l’application deviendra peut-être un magasin en ligne dans un futur proche, Sophie, la product owner de So Pekocko, a décidé que le MVP du projet sera une application web permettant aux utilisateurs d’ajouter leurs sauces préférées et de liker ou disliker les sauces ajoutées par les autres utilisateurs.
 
-Échange de questions/réponses : l’évaluateur pourra revenir sur certains points pour vous questionner sur vos choix.
-L’évaluateur vous fera un retour sur votre prestation en soutenance.
+## Technologies utilisées
+
+* NodeJS
+* Express
+* MongoDB
+* Mongoose
+
+# Documentation
+
+* [Note de cadrage](https://github.com/MrGyo/p6/blob/master/documentation/P6_Note%20de%20cadrage%20So%20Pekocko_V3.pdf)
+* [Guidelines API](https://github.com/MrGyo/p6/blob/master/documentation/Guidelines%2BAPI.pdf)
+
+## Compétences évaluées 
+
+* Implémenter un modèle logique de données conformément à la réglementation
+* Stocker des données de manière sécurisée
+* Mettre en œuvre des opérations CRUD de manière sécurisée
+
+## Résultats
+
+Dans le cadre de ce projet, seule la partie backend a été réalisée. Il convient donc d'installer toutes les dépendances nécessaires qui se trouvent dans le fichier package.json en utilisant la commande suivante : 
+
+```
+npm install
+```
+
+Une fois les dépendances installées, lancer le serveur : 
+
+```
+nodemon server
+```
+
+La partie frontend, fournie par OpenClassrooms, est disponible [ICI](https://github.com/OpenClassrooms-Student-Center/dwj-projet6).
+La procédure à suivre est disponible dans le readme du repository (pour plus de détails cf. les spécifications du projet). Toutefois un soucis avec SASS nécessite de procéder à une installation spécifique : 
+
+```
+npm install node-sass
+```
+Une fois node sass installé (+ suivi de la procédure dédié au frontend) : 
+
+```
+ng serve
+```
