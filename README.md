@@ -28,7 +28,16 @@ Même si l’application deviendra peut-être un magasin en ligne dans un futur 
 
 ## Résultats
 
-Dans le cadre de ce projet, seule la partie backend a été réalisée. Il convient donc d'installer toutes les dépendances nécessaires qui se trouvent dans le fichier package.json en utilisant la commande suivante : 
+Dans le cadre de ce projet, seule la partie backend a été réalisée. 
+Il est indispensable de créer un fichier "auth.config.js" dans le dossier 'config' et d'y saisir une clé secrète : 
+
+```javascript
+module.exports = {
+  secret: "(key)"
+}
+```
+
+Il convient d'installer toutes les dépendances nécessaires qui se trouvent dans le fichier package.json en utilisant la commande suivante : 
 
 ```
 npm install
