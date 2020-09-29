@@ -30,7 +30,7 @@ Même si l’application deviendra peut-être un magasin en ligne dans un futur 
 
 Dans le cadre de ce projet, seule la partie backend a été réalisée. 
 
-Créer un fichier "auth.config.js" dans le dossier 'config' et d'y saisir une clé secrète : 
+Créer un fichier "auth.config.js" dans le dossier 'config' et saisir une clé secrète : 
 
 ```javascript
 module.exports = {
