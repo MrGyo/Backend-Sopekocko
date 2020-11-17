@@ -50,8 +50,8 @@ Une fois les dépendances installées, lancer le serveur :
 nodemon server
 ```
 
-La partie frontend, fournie par OpenClassrooms, est disponible [ICI](https://github.com/OpenClassrooms-Student-Center/dwj-projet6).
-La procédure à suivre est disponible dans le readme du repository (pour plus de détails cf. les spécifications du projet). Toutefois un soucis avec SASS nécessite de procéder à une installation spécifique : 
+La partie frontend est fournie par OpenClassrooms.
+La procédure à suivre est disponible dans les spécifications du projet. Toutefois un soucis avec SASS nécessite de procéder à une installation spécifique : 
 
 ```
 npm install node-sass
@@ -61,6 +61,8 @@ Une fois node sass installé (+ suivi de la procédure dédié au frontend) :
 ```
 ng serve
 ```
+Puis ouvrez votre navigateur sur [localhost:4200](http://localhost:4200/)
+
 Synthèse
 
 Le document de présentation est disponible [ICI](https://github.com/MrGyo/p6/blob/master/soutenance/SOUTENANCE_P6_WEBDEV_20200720_2.pptx)
